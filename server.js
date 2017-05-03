@@ -1,7 +1,6 @@
 var express = require("express");
 var mysql = require('mysql');
 var app = express();
-app.use(express.logger());
 
 var db_config = {
     host: 'eu-cdbr-west-01.cleardb.com',

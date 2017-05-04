@@ -2,8 +2,11 @@
   "name": "node-mysql-example",
   "version": "0.0.1",
   "dependencies": {
-    "express": "4.14.x"
-    , "mysql": ""
+    "bcrypt": "^1.0.2",
+    "body-parser": "^1.17.1",
+    "express": "4.14.x",
+    "express-jwt": "^5.3.0",
+    "mysql": ""
   },
   "engines": {
     "node": "0.10.x",

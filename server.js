@@ -4,6 +4,8 @@ var app = express();
 var bodyParser = require('body-parser');
 var expressJWT = require('express-jwt');
 var jwt = require('jsonwebtoken');
+var bcrypt = require('bcrypt');
+var salt = bcrypt.genSaltSync(10);
 
 var db_config = {
     host: 'eu-cdbr-west-01.cleardb.com',
@@ -43,7 +45,7 @@ app.use(bodyParser.urlencoded({
 
 app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/login', /^\/customers.*/]}));
 
-app.post('/login', function (req, res) {
+app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
     res.status(200).json(myToken);
 });
@@ -76,7 +78,7 @@ app.get('/customers/:id?', function (req, res) {
 });
 
 app.post('/customers', function (req, res) {
-    var postData  = req.body;
+    var postData  = { email: req.body.email, password: bcrypt.hashSync(req.body.password, salt)};
     connection.query('INSERT INTO customers SET ?', postData, function (error, results, fields) {
         console.log(postData);
         if (error) throw error;
@@ -84,8 +86,26 @@ app.post('/customers', function (req, res) {
     });
 });
 
+app.post('/login', function (req, res) {
+    connection.query('SELECT * FROM customers WHERE email =?', [req.body.email], function (error, results, fields) {
+        if (error) {
+            throw error;
+        } else {
+            if(results.length > 0){
+                if( bcrypt.compareSync(req.body.password, results[0].password) ) {
+                    res.sendStatus(200);
+                } else {
+                    res.sendStatus(401);
+                }
+            } else {
+                res.sendStatus(401);
+            }
+        }
+    });
+});
+
 app.put('/customers', function (req, res) {
-    connection.query('UPDATE `customers` SET `email`=?,`password`=? where `id`=?', [req.body.email,req.body.email, req.body.id], function (error, results, fields) {
+    connection.query('UPDATE `customers` SET `email`=?,`password`=? where `id`=?', [req.body.email,req.body.password, req.body.id], function (error, results, fields) {
         if (error) throw error;
         res.end(JSON.stringify(results));
     });

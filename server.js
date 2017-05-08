@@ -43,7 +43,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/login', /^\/customers.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/register', '/login', /^\/customers.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -58,6 +58,36 @@ app.get('/secret', function(request, response) {
         }
         response.send([rows]);
     });
+});
+
+app.get('/allergie', function(request, response) {
+    response.writeHead(200,{'Content-Type':'text/json'});
+
+    var allergie1 = {
+        allergieimage:"eggs_icon",
+        allergieinformatie:"this product contains eggs."
+    };
+
+    var allergie2 = {
+        allergieimage:"celery_icon",
+        allergieinformatie:"This product contains celery."
+    };
+
+    var allergie3 = {
+        allergieimage:"fish_icon",
+        allergieinformatie:"This product contains fish."
+    };
+
+    var allergie4 = {
+        allergieimage:"milk_icon",
+        allergieinformatie:"This product contains milk"
+    };
+
+    var allergieenArray=[allergie1,allergie2,allergie3,allergie4];
+
+    var json = JSON.stringify(allergieenArray);
+
+    response.end(json);
 });
 
 app.get('/customers', function(request, response) {
@@ -77,7 +107,7 @@ app.get('/customers/:id?', function (req, res) {
     });
 });
 
-app.post('/customers', function (req, res) {
+app.post('/register', function (req, res) {
     var postData  = { email: req.body.email, password: bcrypt.hashSync(req.body.password, salt)};
     connection.query('INSERT INTO customers SET ?', postData, function (error, results, fields) {
         console.log(postData);

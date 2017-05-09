@@ -43,7 +43,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/register', '/login', /^\/customers.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/register', '/login', /^\/customers.*/, /^\/balance.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -97,6 +97,16 @@ app.get('/customers', function(request, response) {
             throw err;
         }
         response.send([rows]);
+    });
+});
+
+app.get('/balance/:user', function(request, response) {
+    connection.query('SELECT balance from customers WHERE id=?', [request.params.user], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify(results));
     });
 });
 

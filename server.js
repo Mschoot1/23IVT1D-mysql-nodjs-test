@@ -44,7 +44,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/, /^\/products.*/, /^\/orders.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -91,13 +91,33 @@ app.get('/allergie', function(request, response) {
     response.end(json);
 });
 
-app.get('/customers', function(request, response) {
-    connection.query('SELECT * from customers', function(err, rows, fields) {
+app.get('/products/:user', function(request, response) {
+    connection.query('SELECT products.*, product_category.name as category_name, ifnull(product_orders.quantity,0) as quantity FROM products INNER JOIN product_category ON product_category.id=products.category_id LEFT JOIN product_orders ON product_orders.product_id=products.id AND product_orders.customer_id=?', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
         }
-        response.send([rows]);
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.get('/orders/:user', function(request, response) {
+    connection.query('SELECT * FROM orders WHERE customer_id=?', [request.params.user], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.get('/customers', function(request, response) {
+    connection.query('SELECT * from customers', function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
     });
 });
 

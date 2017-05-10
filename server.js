@@ -11,7 +11,8 @@ var db_config = {
     host: 'eu-cdbr-west-01.cleardb.com',
     user: 'b7097498a52cf9',
     password: '418717e7',
-    database: 'heroku_c8fc5906c0a0752'
+    database: 'heroku_c8fc5906c0a0752',
+    multipleStatements: true
 };
 
 var connection;
@@ -128,7 +129,7 @@ app.post('/register', function (req, res) {
 
 app.post('/topup', function (req, res) {
     var postData  = { credit: req.body.credit, customer_id: req.body.customer_id, type: req.body.type };
-    connection.query('INSERT INTO balance_history SET ?', postData, function (error, results, fields) {
+    connection.query('INSERT INTO balance_history SET `credit`=?, `type`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` + ? WHERE `id`=?', [req.body.credit, req.body.type, req.body.customer_id, req.body.credit, req.body.customer_id], function (error, results, fields) {
         if (error){
             throw error;
         } else {

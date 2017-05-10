@@ -43,7 +43,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/register', '/login', /^\/customers.*/, /^\/balance.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -123,6 +123,17 @@ app.post('/register', function (req, res) {
         console.log(postData);
         if (error) throw error;
         res.end(JSON.stringify(results));
+    });
+});
+
+app.post('/topup', function (req, res) {
+    var postData  = { credit: req.body.credit, customer_id: req.body.customer_id, type: req.body.type };
+    connection.query('INSERT INTO balance_history SET ?', postData, function (error, results, fields) {
+        if (error){
+            throw error;
+        } else {
+            res.end(JSON.stringify(results));
+        }
     });
 });
 

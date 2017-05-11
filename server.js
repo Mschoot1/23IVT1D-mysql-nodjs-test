@@ -101,8 +101,8 @@ app.get('/order/:id', function(request, response) {
     });
 });
 
-app.get('/orders/current/:user', function(request, response) {
-    connection.query('SELECT products.*, product_category.name as category_name, ifnull(product_orders.quantity,0) as quantity FROM products INNER JOIN product_category ON product_category.id=products.category_id LEFT JOIN product_orders ON product_orders.product_id=products.id AND product_orders.customer_id=? LEFT JOIN orders ON orders.id=product_orders.order_id  WHERE orders.status=0', [request.params.user], function(err, results, fields) {
+app.get('/products/:user', function(request, response) {
+    connection.query('SELECT product_orders.product_id AS id, product_orders.quantity, products.name, products.price, products.size, products.alcohol, products.category_id, product_category.name as category_name FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id JOIN product_category ON product_category.id = products.category_id WHERE orders.status = 0 UNION SELECT products.id, 0 AS quantity, products.name, products.price, products.size, products.alcohol, products.category_id, product_category.name as category_name FROM products JOIN product_category ON product_category.id = products.category_id WHERE products.id NOT IN (SELECT product_orders.product_id FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id WHERE orders.status = 0)', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
@@ -111,8 +111,8 @@ app.get('/orders/current/:user', function(request, response) {
     });
 });
 
-app.get('/orders/:user', function(request, response) {
-    connection.query('SELECT * FROM orders WHERE customer_id=? ORDER BY status', [request.params.user], function(err, results, fields) {
+app.get('/orders/current/:user', function(request, response) {
+    connection.query('SELECT * FROM orders INNER JOIN product_orders ON product_orders.order_id=orders.id LEFT JOIN products ON products.id=product_orders.product_id WHERE orders.customer_id = ? AND orders.`status` = 0', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

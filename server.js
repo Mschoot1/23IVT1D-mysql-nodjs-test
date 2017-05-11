@@ -121,8 +121,28 @@ app.get('/products/:user', function(request, response) {
     });
 });
 
-app.get('/orders/current/:user', function(request, response) {
-    connection.query('SELECT * FROM orders INNER JOIN product_orders ON product_orders.order_id=orders.id LEFT JOIN products ON products.id=product_orders.product_id WHERE orders.customer_id = ? AND orders.`status` = 0', [request.params.user], function(err, results, fields) {
+app.get('/products/order/:id', function(request, response) {
+    connection.query('SELECT * FROM orders INNER JOIN product_orders ON product_orders.order_id=orders.id LEFT JOIN products ON products.id=product_orders.product_id WHERE orders.id = ?', [request.params.id], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.get('/order/current/:user', function(request, response) {
+    connection.query('SELECT * FROM orders WHERE status=0 AND customer_id=?', [request.params.user], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.put('/product/:id/quantity/:amount/customer/:user', function(request, response) {
+    connection.query('UPDATE `product_orders` SET `quantity`=?, WHERE `product_id`=? AND customer_id=?', [request.body.amount, request.body.id, request.body.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

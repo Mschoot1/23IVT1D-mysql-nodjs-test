@@ -44,7 +44,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/, /^\/products.*/, /^\/orders.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/, /^\/products.*/, /^\/orders.*/, /^\/current_order.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -91,8 +91,18 @@ app.get('/allergie', function(request, response) {
     response.end(json);
 });
 
-app.get('/products/:user', function(request, response) {
-    connection.query('SELECT products.*, product_category.name as category_name, ifnull(product_orders.quantity,0) as quantity FROM products INNER JOIN product_category ON product_category.id=products.category_id LEFT JOIN product_orders ON product_orders.product_id=products.id AND product_orders.customer_id=?', [request.params.user], function(err, results, fields) {
+app.get('/order/:id', function(request, response) {
+    connection.query('SELECT * FROM orders WHERE id=?', [request.params.id], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.get('/orders/current/:user', function(request, response) {
+    connection.query('SELECT products.*, product_category.name as category_name, ifnull(product_orders.quantity,0) as quantity FROM products INNER JOIN product_category ON product_category.id=products.category_id LEFT JOIN product_orders ON product_orders.product_id=products.id AND product_orders.customer_id=? LEFT JOIN orders ON orders.id=product_orders.order_id  WHERE orders.status=0', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
@@ -102,7 +112,7 @@ app.get('/products/:user', function(request, response) {
 });
 
 app.get('/orders/:user', function(request, response) {
-    connection.query('SELECT * FROM orders WHERE customer_id=?', [request.params.user], function(err, results, fields) {
+    connection.query('SELECT * FROM orders WHERE customer_id=? ORDER BY status', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

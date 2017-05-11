@@ -92,7 +92,7 @@ app.get('/allergie', function(request, response) {
 });
 
 app.get('/orders/:user', function(request, response) {
-    connection.query('SELECT * FROM orders WHERE customer_id=?', [request.params.user], function(err, results, fields) {
+    connection.query('SELECT * FROM orders WHERE customer_id=? ORDER BY status', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

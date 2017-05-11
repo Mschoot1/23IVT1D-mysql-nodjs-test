@@ -44,7 +44,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/, /^\/products.*/, /^\/current_order.*/, /^\/order.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -141,8 +141,8 @@ app.get('/order/current/:user', function(request, response) {
     });
 });
 
-app.put('/product/:id/quantity/:amount/customer/:user/order/:order', function(request, response) {
-    connection.query('UPDATE `product_orders` SET `quantity`=?, WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.amount, request.body.id, request.body.user, request.body.order], function(err, results, fields) {
+app.put('/product/quantity/edit', function(request, response) {
+    connection.query('UPDATE `product_orders` SET `quantity`=? WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.quantity, request.body.product_id, request.body.customer_id, request.body.order_id], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
@@ -151,8 +151,8 @@ app.put('/product/:id/quantity/:amount/customer/:user/order/:order', function(re
     });
 });
 
-app.delete('/product/:id/customer/:user/order/:order', function(request, response) {
-    connection.query('DELETE FROM `product_orders` WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.id, request.body.user, request.body.order], function(err, results, fields) {
+app.delete('/product/quantity/delete', function(request, response) {
+    connection.query('DELETE FROM `product_orders` WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.product_id, request.body.customer_id, request.body.order_id], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
@@ -161,8 +161,8 @@ app.delete('/product/:id/customer/:user/order/:order', function(request, respons
     });
 });
 
-app.post('/product/add', function (req, res) {
-    var postData  = { order_id: req.body.order_id, product_id: req.body.product_id, customer_id: req.body.customer_id, quantity: req.body.quantity};
+app.post('/product/quantity/add', function (request, res) {
+    var postData  = { order_id: request.body.order_id, product_id: request.body.product_id, customer_id: request.body.customer_id, quantity: request.body.quantity};
     connection.query('INSERT INTO product_orders SET ?', postData, function (error, results, fields) {
         console.log(postData);
         if (error) throw error;

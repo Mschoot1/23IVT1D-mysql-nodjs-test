@@ -141,6 +141,15 @@ app.get('/order/current/:user', function(request, response) {
     });
 });
 
+app.put('/order/price/edit', function(request, response) {
+    connection.query('UPDATE `orders` SET `price_total`=? WHERE `id`=?', [request.body.price_total, request.body.order_id], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
 app.put('/product/quantity/edit', function(request, response) {
     connection.query('UPDATE `product_orders` SET `quantity`=? WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.quantity, request.body.product_id, request.body.customer_id, request.body.order_id], function(err, results, fields) {
         if (err) {

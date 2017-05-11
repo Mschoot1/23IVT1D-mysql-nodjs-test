@@ -122,7 +122,7 @@ app.get('/products/:user', function(request, response) {
 });
 
 app.get('/products/order/:id', function(request, response) {
-    connection.query('SELECT * FROM orders INNER JOIN product_orders ON product_orders.order_id=orders.id LEFT JOIN products ON products.id=product_orders.product_id WHERE orders.id = ?', [request.params.id], function(err, results, fields) {
+    connection.query('SELECT products.*, product_category.name as category_name, product_orders.* FROM orders INNER JOIN product_orders ON product_orders.order_id=orders.id LEFT JOIN products ON products.id=product_orders.product_id LEFT JOIN product_category ON products.category_id=product_category.id WHERE orders.id = ?', [request.params.id], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

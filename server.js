@@ -44,7 +44,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/, /^\/products.*/, /^\/orders.*/, /^\/current_order.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/, /^\/products.*/, /^\/current_order.*/, /^\/order.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -89,6 +89,16 @@ app.get('/allergie', function(request, response) {
     var json = JSON.stringify(allergieenArray);
 
     response.end(json);
+});
+
+app.get('/orders/:user', function(request, response) {
+    connection.query('SELECT * FROM orders WHERE customers.id=?', [request.params.user], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
 });
 
 app.get('/order/:id', function(request, response) {

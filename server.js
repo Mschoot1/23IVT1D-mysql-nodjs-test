@@ -141,13 +141,32 @@ app.get('/order/current/:user', function(request, response) {
     });
 });
 
-app.put('/product/:id/quantity/:amount/customer/:user', function(request, response) {
-    connection.query('UPDATE `product_orders` SET `quantity`=?, WHERE `product_id`=? AND customer_id=?', [request.body.amount, request.body.id, request.body.user], function(err, results, fields) {
+app.put('/product/:id/quantity/:amount/customer/:user/order/:order', function(request, response) {
+    connection.query('UPDATE `product_orders` SET `quantity`=?, WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.amount, request.body.id, request.body.user, request.body.order], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
         }
         response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.delete('/product/:id/customer/:user/order/:order', function(request, response) {
+    connection.query('DELETE FROM `product_orders` WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.id, request.body.user, request.body.order], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.post('/product/add', function (req, res) {
+    var postData  = { order_id: req.body.order_id, product_id: req.body.product_id, customer_id: req.body.customer_id, quantity: req.body.quantity};
+    connection.query('INSERT INTO product_orders SET ?', postData, function (error, results, fields) {
+        console.log(postData);
+        if (error) throw error;
+        res.end(JSON.stringify(results));
     });
 });
 

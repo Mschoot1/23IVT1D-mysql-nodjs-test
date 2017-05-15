@@ -61,34 +61,14 @@ app.get('/secret', function(request, response) {
     });
 });
 
-app.get('/allergie', function(request, response) {
-    response.writeHead(200,{'Content-Type':'text/json'});
-
-    var allergie1 = {
-        allergieimage:"eggs_icon",
-        allergieinformatie:"this product contains eggs."
-    };
-
-    var allergie2 = {
-        allergieimage:"celery_icon",
-        allergieinformatie:"This product contains celery."
-    };
-
-    var allergie3 = {
-        allergieimage:"fish_icon",
-        allergieinformatie:"This product contains fish."
-    };
-
-    var allergie4 = {
-        allergieimage:"milk_icon",
-        allergieinformatie:"This product contains milk"
-    };
-
-    var allergieenArray=[allergie1,allergie2,allergie3,allergie4];
-
-    var json = JSON.stringify(allergieenArray);
-
-    response.end(json);
+app.get('/allergies', function(request, response) {
+    connection.query('SELECT * FROM allergies', function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
 });
 
 app.get('/orders/:user', function(request, response) {
@@ -228,6 +208,17 @@ app.post('/register', function (req, res) {
 app.post('/topup', function (req, res) {
     var postData  = { credit: req.body.credit, customer_id: req.body.customer_id, type: req.body.type };
     connection.query('INSERT INTO balance_history SET `credit`=?, `type`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` + ? WHERE `id`=?', [req.body.credit, req.body.type, req.body.customer_id, req.body.credit, req.body.customer_id], function (error, results, fields) {
+        if (error){
+            throw error;
+        } else {
+            res.end(JSON.stringify(results));
+        }
+    });
+});
+
+app.post('/order/pay', function (req, res) {
+    var postData  = { credit: req.body.credit, customer_id: req.body.customer_id };
+    connection.query('INSERT INTO balance_history SET `credit`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` - ? WHERE `id`=?', [req.body.credit, req.body.customer_id, req.body.credit, req.body.customer_id], function (error, results, fields) {
         if (error){
             throw error;
         } else {

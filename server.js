@@ -170,6 +170,16 @@ app.delete('/product/quantity/delete', function(request, response) {
     });
 });
 
+app.put('/order/edit', function(request, response) {
+    connection.query('UPDATE `orders` SET `status`=1 WHERE `id`=?', [request.body.id], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
 app.post('/product/quantity/add', function (request, res) {
     var postData  = { order_id: request.body.order_id, product_id: request.body.product_id, customer_id: request.body.customer_id, quantity: request.body.quantity};
     connection.query('INSERT INTO product_orders SET ?', postData, function (error, results, fields) {

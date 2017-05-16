@@ -44,7 +44,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customers.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -189,6 +189,17 @@ app.get('/balance/:user', function(request, response) {
     });
 });
 
+
+app.get('/email/:user', function(request, response) {
+    connection.query('SELECT email from customers WHERE id=?', [request.params.user], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify(results));
+    });
+});
+
 app.get('/customers/:id?', function (req, res) {
     connection.query('select * from customers where id=?', [req.params.id], function (error, results, fields) {
         if (error) throw error;
@@ -224,6 +235,27 @@ app.post('/order/pay', function (req, res) {
         } else {
             res.end(JSON.stringify(results));
         }
+    });
+});
+
+app.post('/customer/device', function (req, res) {
+    var postData  = { customer_id: req.body.customer_id, hardware: req.body.hardware, type: req.body.type, model: req.body.model, brand: req.body.brand, device: req.body.device, manufacturer: req.body.manufacturer, user: req.body.user, serial: req.body.serial, host: req.body.host, device_id: req.body.device_id, bootloader: req.body.bootloader, board: req.body.board, display: req.body.display };
+    connection.query('INSERT INTO device_information SET ?', postData, function (error, results, fields) {
+        if (error){
+            throw error;
+        } else {
+            res.end(JSON.stringify(results));
+        }
+    });
+});
+
+app.get('/customers/device', function(request, response) {
+    connection.query('SELECT * from device_information', function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
     });
 });
 

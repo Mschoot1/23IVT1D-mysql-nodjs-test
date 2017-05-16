@@ -249,8 +249,18 @@ app.post('/customer/device', function (req, res) {
     });
 });
 
-app.get('/customers/device', function(request, response) {
+app.get('/customer/device', function(request, response) {
     connection.query('SELECT * from device_information', function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.get('/product/categories', function(request, response) {
+    connection.query('SELECT * FROM product_category', function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

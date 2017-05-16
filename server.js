@@ -44,7 +44,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergie', '/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergies', '/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -103,7 +103,7 @@ app.get('/products/:user', function(request, response) {
 
 
 app.get('/products/:user/category/:category', function(request, response) {
-    connection.query('(SELECT product_orders.product_id AS id, product_orders.quantity, products.name, products.price, products.size, products.alcohol, products.category_id as category_id, product_category.name as category_name FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id JOIN product_category ON product_category.id = products.category_id AND products.category_id = ? WHERE orders.status = 0 AND orders.customer_id = ? ORDER BY products.category_id ) UNION (SELECT products.id, 0 AS quantity, products.name, products.price, products.size, products.alcohol, products.category_id, product_category.name as category_name FROM products JOIN product_category ON product_category.id = products.category_id  AND products.category_id = ? WHERE products.id NOT IN (SELECT product_orders.product_id FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id WHERE orders.status = 0 AND orders.customer_id = ?) ) ORDER BY category_id, id', [request.params.user, request.params.user, request.params.category, request.params.category], function(err, results, fields) {
+    connection.query('(SELECT product_orders.product_id AS id, product_orders.quantity, products.name, products.price, products.size, products.alcohol, products.category_id as category_id, product_category.name as category_name FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id JOIN product_category ON product_category.id = products.category_id AND products.category_id = ? WHERE orders.status = 0 AND orders.customer_id = ? ORDER BY category_id ) UNION ( SELECT products.id, 0 AS quantity, products.name, products.price, products.size, products.alcohol, products.category_id, product_category.name as category_name FROM products JOIN product_category ON product_category.id = products.category_id AND products.category_id = ? WHERE products.id NOT IN ( SELECT product_orders.product_id FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id WHERE orders.status = 0 AND orders.customer_id = ? ) ) ORDER BY category_id, id', [request.params.category, request.params.user, request.params.category, request.params.user, ], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

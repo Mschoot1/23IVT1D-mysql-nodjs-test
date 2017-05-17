@@ -44,7 +44,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/allergies', '/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: [/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
 
 app.post('/loginAuth', function (req, res) {
     var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
@@ -61,7 +61,7 @@ app.get('/secret', function(request, response) {
     });
 });
 
-app.get('/allergies', function(request, response) {
+app.get('/product/allergies', function(request, response) {
     connection.query('SELECT * FROM allergies', function(err, results, fields) {
         if (err) {
             console.log('error: ', err);

@@ -219,16 +219,13 @@ app.get('/customers/:id?', function (req, res) {
 });
 
 app.post('/register', function (req, res) {
-    var postData  = { email: req.body.email, password: bcrypt.hashSync(req.body.password, salt)};
-    connection.query('INSERT INTO customers SET ?', postData, function (error, results, fields) {
-        console.log(postData);
+    connection.query('INSERT INTO customers SET email =?, password = ?;INSERT INTO orders (status, price_total, customer_id) SELECT 0, 0, id FROM customers WHERE email = ?', [req.body.email, bcrypt.hashSync(req.body.password, salt), req.body.email], function (error, results, fields) {
         if (error) throw error;
         res.end(JSON.stringify(results));
     });
 });
 
 app.post('/topup', function (req, res) {
-    var postData  = { credit: req.body.credit, customer_id: req.body.customer_id, type: req.body.type };
     connection.query('INSERT INTO balance_history SET `credit`=?, `type`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` + ? WHERE `id`=?', [req.body.credit, req.body.type, req.body.customer_id, req.body.credit, req.body.customer_id], function (error, results, fields) {
         if (error){
             throw error;
@@ -239,8 +236,7 @@ app.post('/topup', function (req, res) {
 });
 
 app.post('/order/pay', function (req, res) {
-    var postData  = { credit: req.body.credit, customer_id: req.body.customer_id };
-    connection.query('INSERT INTO balance_history SET `credit`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` - ? WHERE `id`=?', [req.body.credit, req.body.customer_id, req.body.credit, req.body.customer_id], function (error, results, fields) {
+    connection.query('INSERT INTO balance_history SET `credit`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` - ? WHERE `id`=?;INSERT INTO orders SET `status`=0, `price_total`=0, `customer_id`=?', [req.body.credit, req.body.customer_id, req.body.credit, req.body.customer_id, req.body.customer_id], function (error, results, fields) {
         if (error){
             throw error;
         } else {

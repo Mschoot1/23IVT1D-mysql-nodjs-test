@@ -44,14 +44,19 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
-
-app.post('/loginAuth', function (req, res) {
-    var myToken = jwt.sign({ email: 'test'}, 'zeersecret');
-    res.status(200).json(myToken);
-});
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
 
 app.get('/secret', function(request, response) {
+    connection.query('SELECT * from secret', function(err, rows, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.send([rows]);
+    });
+});
+
+app.get('/secret2', function(request, response) {
     connection.query('SELECT * from secret', function(err, rows, fields) {
         if (err) {
             console.log('error: ', err);
@@ -284,6 +289,25 @@ app.post('/login', function (req, res) {
             if(results.length > 0){
                 if( bcrypt.compareSync(req.body.password, results[0].password) ) {
                     res.sendStatus(200);
+                } else {
+                    res.sendStatus(401);
+                }
+            } else {
+                res.sendStatus(401);
+            }
+        }
+    });
+});
+
+app.post('/loginAuth', function (req, res) {
+    connection.query('SELECT * FROM customers WHERE email =?', [req.body.email], function (error, results, fields) {
+        if (error) {
+            throw error;
+        } else {
+            if(results.length > 0){
+                if( bcrypt.compareSync(req.body.password, results[0].password) ) {
+                    var token = jwt.sign({ user: results[0].id }, 'zeersecret');
+                    res.status(200).json(token);
                 } else {
                     res.sendStatus(401);
                 }

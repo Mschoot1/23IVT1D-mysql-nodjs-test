@@ -47,22 +47,22 @@ app.use(bodyParser.urlencoded({
 app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
 
 app.get('/secret', function(request, response) {
-    connection.query('SELECT * from secret', function(err, rows, fields) {
+    connection.query('SELECT * from secret', function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
         }
-        response.send([rows]);
+        response.send(JSON.stringify({"results": results}));
     });
 });
 
 app.get('/secret2', function(request, response) {
-    connection.query('SELECT * from secret', function(err, rows, fields) {
+    connection.query('SELECT * from secret', function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
         }
-        response.send([rows]);
+        response.send(JSON.stringify({"results": results}));
     });
 });
 

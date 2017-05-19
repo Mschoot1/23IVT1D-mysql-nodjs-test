@@ -6,6 +6,7 @@ var expressJWT = require('express-jwt');
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcrypt');
 var salt = bcrypt.genSaltSync(10);
+var _ = require('lodash');
 
 var db_config = {
     host: 'eu-cdbr-west-01.cleardb.com',
@@ -96,17 +97,6 @@ app.get('/order/:id', function(request, response) {
     });
 });
 
-app.get('/products/:user', function(request, response) {
-    connection.query('(SELECT product_orders.product_id AS id, product_orders.quantity, products.name, products.price, products.size, products.alcohol, products.category_id as category_id, product_category.name as category_name FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id JOIN product_category ON product_category.id = products.category_id WHERE orders.status = 0 AND orders.customer_id = ? ORDER BY products.category_id ) UNION (SELECT products.id, 0 AS quantity, products.name, products.price, products.size, products.alcohol, products.category_id, product_category.name as category_name FROM products JOIN product_category ON product_category.id = products.category_id WHERE products.id NOT IN (SELECT product_orders.product_id FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id WHERE orders.status = 0 AND orders.customer_id = ?) ) ORDER BY category_id, id', [request.params.user, request.params.user], function(err, results, fields) {
-        if (err) {
-            console.log('error: ', err);
-            throw err;
-        }
-        response.end(JSON.stringify({"results": results}));
-    });
-});
-
-
 app.get('/products/:user/category/:category', function(request, response) {
     connection.query('(SELECT product_orders.product_id AS id, product_orders.quantity, products.name, products.price, products.size, products.alcohol, products.category_id as category_id, product_category.name as category_name FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id JOIN product_category ON product_category.id = products.category_id AND products.category_id = ? WHERE orders.status = 0 AND orders.customer_id = ? ORDER BY category_id ) UNION ( SELECT products.id, 0 AS quantity, products.name, products.price, products.size, products.alcohol, products.category_id, product_category.name as category_name FROM products JOIN product_category ON product_category.id = products.category_id AND products.category_id = ? WHERE products.id NOT IN ( SELECT product_orders.product_id FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id WHERE orders.status = 0 AND orders.customer_id = ? ) ) ORDER BY category_id, id', [request.params.category, request.params.user, request.params.category, request.params.user, ], function(err, results, fields) {
         if (err) {
@@ -117,13 +107,91 @@ app.get('/products/:user/category/:category', function(request, response) {
     });
 });
 
-app.get('/products/order/:id', function(request, response) {
-    connection.query('SELECT products.*, product_category.name as category_name, product_orders.* FROM orders INNER JOIN product_orders ON product_orders.order_id=orders.id LEFT JOIN products ON products.id=product_orders.product_id LEFT JOIN product_category ON products.category_id=product_category.id WHERE orders.id = ? ORDER BY products.category_id, products.id', [request.params.id], function(err, results, fields) {
+app.get('/products/:user', function(request, response) {
+    function mergeByProductId(arr) {
+        return _(arr)
+            .groupBy(function(item) {
+                return item.id;
+            })
+            .map(function(group) {
+                return _.mergeWith.apply(_, [{}].concat(group, function(obj, src) {
+
+                    if (Array.isArray(obj)) {
+                        return obj.concat(src);
+                    }
+                }))
+            })
+            .values()
+            .value();
+    }
+    connection.query({sql: '(SELECT product_orders.product_id AS id, product_orders.quantity, products.name, products.price, products.size, products.alcohol, products.category_id as category_id, product_category.name as category_name, allergies.description, allergies.image FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id JOIN product_category ON product_category.id = products.category_id LEFT JOIN product_allergy ON product_allergy.product_id=products.id LEFT JOIN allergies ON allergies.id=product_allergy.allergy_id WHERE orders.status = 0 AND orders.customer_id = ? ORDER BY products.category_id ) UNION (SELECT products.id, 0 AS quantity, products.name, products.price, products.size, products.alcohol, products.category_id, product_category.name as category_name, allergies.description, allergies.image FROM products JOIN product_category ON product_category.id = products.category_id LEFT JOIN product_allergy ON product_allergy.product_id=products.id LEFT JOIN allergies ON allergies.id=product_allergy.allergy_id WHERE products.id NOT IN (SELECT product_orders.product_id FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id WHERE orders.status = 0 AND orders.customer_id = ?) ) ORDER BY category_id, id', nestTables: true }, [request.params.user, request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
         }
-        response.end(JSON.stringify({"results": results}));
+        results.forEach(function(row) {
+
+            row.id = row[''].id;
+            row.name = row[''].name;
+            row.price = row[''].price;
+            row.size = row[''].size;
+            row.alcohol = row[''].alcohol;
+            row.category_id = row[''].category_id;
+            row.category_name = row[''].category_name;
+            row.quantity = row[''].quantity;
+            row.allergies = [].concat({ description: row[''].description, image: row[''].image });
+
+            delete row[''];
+        });
+
+        response.end(JSON.stringify({"results": mergeByProductId(results)}));
+    });
+});
+
+app.get('/products/order/:id', function(request, response) {
+    function mergeByProductId(arr) {
+        return _(arr)
+            .groupBy(function(item) {
+                return item.product_id;
+            })
+            .map(function(group) {
+                return _.mergeWith.apply(_, [{}].concat(group, function(obj, src) {
+
+                    if (Array.isArray(obj)) {
+                        return obj.concat(src);
+                    }
+                }))
+            })
+            .values()
+            .value();
+    }
+    connection.query({sql: 'SELECT products.*, product_category.name as category_name, product_orders.*, allergies.description, allergies.image FROM orders INNER JOIN product_orders ON product_orders.order_id=orders.id LEFT JOIN products ON products.id=product_orders.product_id LEFT JOIN product_category ON products.category_id=product_category.id LEFT JOIN product_allergy ON product_allergy.product_id=products.id LEFT JOIN allergies ON allergies.id=product_allergy.allergy_id WHERE orders.id = ? ORDER BY products.category_id, products.id', nestTables: true }, [request.params.id], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        results.forEach(function(row) {
+
+            row.id = row['product_orders'].id;
+            row.name = row['products'].name;
+            row.price = row['products'].price;
+            row.size = row['products'].size;
+            row.alcohol = row['products'].alcohol;
+            row.category_id = row['products'].category_id;
+            row.category_name = row['product_category'].category_name;
+            row.order_id = row['product_orders'].order_id;
+            row.product_id = row['product_orders'].product_id;
+            row.customer_id = row['product_orders'].customer_id;
+            row.quantity = row['product_orders'].quantity;
+            row.timestamp = row['product_orders'].timestamp;
+            row.allergies = [].concat(row['allergies']);
+
+            delete row['product_orders'];
+            delete row['products'];
+            delete row['product_category'];
+        });
+
+        response.end(JSON.stringify({"results": mergeByProductId(results)}));
     });
 });
 

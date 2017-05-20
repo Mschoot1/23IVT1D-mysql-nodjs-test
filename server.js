@@ -121,6 +121,7 @@ app.get('/products/:user', function(request, response) {
                     }
                 }))
             })
+            .orderBy(['category_id'], ['asc'])
             .values()
             .value();
     }
@@ -162,6 +163,7 @@ app.get('/products/order/:id', function(request, response) {
                     }
                 }))
             })
+            .orderBy(['category_id'], ['asc'])
             .values()
             .value();
     }

@@ -45,7 +45,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/topup', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/register', '/login', /^\/customer.*/, /^\/email.*/, /^\/balance.*/, /^\/product.*/, /^\/current_order.*/, /^\/order.*/]}));
 
 app.get('/secret', function(request, response) {
     connection.query('SELECT * from secret', function(err, results, fields) {

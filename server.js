@@ -265,13 +265,13 @@ app.get('/customers', function(request, response) {
     });
 });
 
-app.get('/balance/:user', function(request, response) {
-    connection.query('SELECT balance from customers WHERE id=?', [request.params.user], function(err, results, fields) {
+app.get('/account/:user', function(request, response) {
+    connection.query('SELECT email, balance from customers WHERE id=?', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
         }
-        response.end(JSON.stringify(results));
+        response.end(JSON.stringify({"results": results}));
     });
 });
 

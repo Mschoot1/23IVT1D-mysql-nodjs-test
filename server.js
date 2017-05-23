@@ -320,9 +320,9 @@ app.post('/order/pay', function (req, res) {
     });
 });
 
-app.post('/customer/device', function (req, res) {
+app.put('/customer/device', function (req, res) {
     var postData  = { customer_id: req.body.customer_id, hardware: req.body.hardware, type: req.body.type, model: req.body.model, brand: req.body.brand, device: req.body.device, manufacturer: req.body.manufacturer, user: req.body.user, serial: req.body.serial, host: req.body.host, device_id: req.body.device_id, bootloader: req.body.bootloader, board: req.body.board, display: req.body.display };
-    connection.query('INSERT INTO device_information SET ?', postData, function (error, results, fields) {
+    connection.query('UPDATE `device_information` SET ?', postData, function (error, results, fields) {
         if (error){
             throw error;
         } else {

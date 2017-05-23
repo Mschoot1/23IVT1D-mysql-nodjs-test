@@ -45,7 +45,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/register', /^\/order.*/, /^\/products.*/, /^\/account.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/register', /^\/order.*/, /^\/products.*/, /^\/account.*/, /^\/customer.*/]}));
 
 app.get('/secret', function(request, response) {
     connection.query('SELECT * from secret', function(err, results, fields) {
@@ -294,7 +294,7 @@ app.get('/customers/:id?', function (req, res) {
 });
 
 app.post('/register', function (req, res) {
-    connection.query('INSERT INTO customers SET email =?, password = ?;INSERT INTO orders (status, price_total, customer_id) SELECT 0, 0, id FROM customers WHERE email = ?', [req.body.email, bcrypt.hashSync(req.body.password, salt), req.body.email], function (error, results, fields) {
+    connection.query('INSERT INTO customers SET email =?, password = ?;INSERT INTO orders (status, price_total, customer_id) SELECT 0, 0, id FROM customers WHERE email = ?;INSERT INTO device_information (customer_id) SELECT id FROM customers WHERE email = ?', [req.body.email, bcrypt.hashSync(req.body.password, salt), req.body.email, req.body.email], function (error, results, fields) {
         if (error) throw error;
         res.end(JSON.stringify(results));
     });
@@ -320,9 +320,9 @@ app.post('/order/pay', function (req, res) {
     });
 });
 
-app.post('/customer/device', function (req, res) {
-    var postData  = { customer_id: req.body.customer_id, hardware: req.body.hardware, type: req.body.type, model: req.body.model, brand: req.body.brand, device: req.body.device, manufacturer: req.body.manufacturer, user: req.body.user, serial: req.body.serial, host: req.body.host, device_id: req.body.device_id, bootloader: req.body.bootloader, board: req.body.board, display: req.body.display };
-    connection.query('INSERT INTO device_information SET ?', postData, function (error, results, fields) {
+app.put('/customer/device', function (req, res) {
+    connection.query('UPDATE `device_information` SET `hardware`=?, `type`=?, `model`=?, `brand`=?, `device`=?, `manufacturer`=?, `user`=?, `serial`=?, `host`=?, `device_id`=?, `bootloader`=?, `board` =?, `display`=? WHERE `customer_id`=?', [req.body.hardware, req.body.type, req.body.model, req.body.brand, req.body.device, req.body.manufacturer, req.body.user, req.body.serial, req.body.host, req.body.device_id, req.body.bootloader, req.body.board, req.body.display, req.body.customer_id]
+        , function (error, results, fields) {
         if (error){
             throw error;
         } else {

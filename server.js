@@ -331,8 +331,8 @@ app.put('/customer/device', function (req, res) {
     });
 });
 
-app.get('/customer/device', function(request, response) {
-    connection.query('SELECT * from device_information', function(err, results, fields) {
+app.get('/customer/:user/device/', function(request, response) {
+    connection.query('SELECT * from device_information WHERE customer_id=?', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

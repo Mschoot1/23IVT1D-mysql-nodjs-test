@@ -45,7 +45,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/register', /^\/order.*/, /^\/products.*/, /^\/account.*/, /^\/customer.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/loginRegister', '/register', /^\/order.*/, /^\/products.*/, /^\/account.*/, /^\/customer.*/]}));
 
 app.get('/secret', function(request, response) {
     connection.query('SELECT * from secret', function(err, results, fields) {
@@ -371,6 +371,25 @@ app.post('/login', function (req, res) {
 
 app.post('/loginAuth', function (req, res) {
     connection.query('SELECT * FROM customers WHERE email =?', [req.body.email], function (error, results, fields) {
+        if (error) {
+            throw error;
+        } else {
+            if(results.length > 0){
+                if( bcrypt.compareSync(req.body.password, results[0].password) ) {
+                    var token = jwt.sign({ user: results[0].id }, 'zeersecret');
+                    res.status(200).json(token);
+                } else {
+                    res.sendStatus(401);
+                }
+            } else {
+                res.sendStatus(401);
+            }
+        }
+    });
+});
+
+app.post('/loginRegister', function (req, res) {
+    connection.query('SELECT * FROM register WHERE id =?', [req.body.id], function (error, results, fields) {
         if (error) {
             throw error;
         } else {

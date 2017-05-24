@@ -389,7 +389,7 @@ app.post('/loginAuth', function (req, res) {
 });
 
 app.post('/loginRegister', function (req, res) {
-    connection.query('SELECT * FROM register WHERE id =?', [req.body.id], function (error, results, fields) {
+    connection.query('SELECT * FROM register WHERE id =?', [req.body.email], function (error, results, fields) {
         if (error) {
             throw error;
         } else {

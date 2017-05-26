@@ -45,7 +45,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/loginRegister', '/register', /^\/order.*/, /^\/products.*/, /^\/account.*/, /^\/customer.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/loginRegister', /^\/order.*/, /^\/register.*/, /^\/products.*/, /^\/account.*/, /^\/customer.*/]}));
 
 app.get('/secret', function(request, response) {
     connection.query('SELECT * from secret', function(err, results, fields) {
@@ -333,6 +333,16 @@ app.put('/customer/device', function (req, res) {
 
 app.get('/customer/:user/device/', function(request, response) {
     connection.query('SELECT * from device_information WHERE customer_id=?', [request.params.user], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.get('/register/:id', function(request, response) {
+    connection.query('SELECT register_history.order_id, register_history.customer_id, register_history.timestamp, orders.price_total from register_history INNER JOIN orders ON orders.id = register_history.order_id WHERE register_history.register_id=?', [request.params.id], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

@@ -45,7 +45,7 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/loginRegister', /^\/order.*/, /^\/register.*/, /^\/products.*/, /^\/account.*/, /^\/customer.*/]}));
+app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/loginRegister', /^\/order.*/, /^\/register.*/, /^\/product.*/, /^\/account.*/, /^\/customer.*/]}));
 
 app.get('/secret', function(request, response) {
     connection.query('SELECT * from secret', function(err, results, fields) {
@@ -143,6 +143,48 @@ app.get('/products/:user', function(request, response) {
             row.allergies = [].concat({ description: row[''].description, image: row[''].image });
 
             delete row[''];
+        });
+
+        response.end(JSON.stringify({"results": mergeByProductId(results)}));
+    });
+});
+
+
+app.get('/products', function(request, response) {
+    function mergeByProductId(arr) {
+        return _(arr)
+            .groupBy(function(item) {
+                return item.id;
+            })
+            .map(function(group) {
+                return _.mergeWith.apply(_, [{}].concat(group, function(obj, src) {
+
+                    if (Array.isArray(obj)) {
+                        return obj.concat(src);
+                    }
+                }))
+            })
+            .orderBy(['category_id'], ['asc'])
+            .values()
+            .value();
+    }
+    connection.query({sql: 'SELECT products.*, product_category.name as category_name, allergies.description, allergies.image FROM products LEFT JOIN product_category ON product_category.id = products.category_id LEFT JOIN product_allergy ON product_allergy.product_id=products.id LEFT JOIN allergies ON allergies.id=product_allergy.allergy_id ORDER BY products.category_id, products.id', nestTables: true }, function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        results.forEach(function(row) {
+
+            row.id = row['products'].id;
+            row.name = row['products'].name;
+            row.price = row['products'].price;
+            row.size = row['products'].size;
+            row.alcohol = row['products'].alcohol;
+            row.category_name = row['product_category'].category_name;
+            row.allergies = [].concat({ description: row['allergies'].description, image: row['allergies'].image });
+
+            delete row['products'];
+            delete row['product_category'];
         });
 
         response.end(JSON.stringify({"results": mergeByProductId(results)}));

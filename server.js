@@ -181,6 +181,7 @@ app.get('/products', function(request, response) {
             row.size = row['products'].size;
             row.alcohol = row['products'].alcohol;
             row.category_name = row['product_category'].category_name;
+            row.category_id = row['products'].category_id;
             row.allergies = [].concat({ description: row['allergies'].description, image: row['allergies'].image });
 
             delete row['products'];

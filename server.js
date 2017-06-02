@@ -78,7 +78,7 @@ app.get('/product/allergies', function(request, response) {
 });
 
 app.get('/orders/:user', function(request, response) {
-    connection.query('SELECT * FROM orders WHERE customer_id=? AND status = 0 ORDER BY timestamp DESC', [request.params.user], function(err, results, fields) {
+    connection.query('SELECT * FROM orders WHERE customer_id=? AND status = 1 ORDER BY timestamp DESC', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

@@ -134,6 +134,7 @@ app.get('/products/:user', function(request, response) {
 
             row.id = row[''].id;
             row.name = row[''].name;
+            row.image = row['products'].image;
             row.price = row[''].price;
             row.size = row[''].size;
             row.alcohol = row[''].alcohol;

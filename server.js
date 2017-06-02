@@ -125,7 +125,7 @@ app.get('/products/:user', function(request, response) {
             .values()
             .value();
     }
-    connection.query({sql: '(SELECT product_orders.product_id AS id, product_orders.quantity, products.name, products.price, products.size, products.alcohol, products.category_id as category_id, product_category.name as category_name, allergies.description, allergies.image FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id JOIN product_category ON product_category.id = products.category_id LEFT JOIN product_allergy ON product_allergy.product_id=products.id LEFT JOIN allergies ON allergies.id=product_allergy.allergy_id WHERE orders.status = 0 AND orders.customer_id = ? ORDER BY products.category_id ) UNION (SELECT products.id, 0 AS quantity, products.name, products.price, products.size, products.alcohol, products.category_id, product_category.name as category_name, allergies.description, allergies.image FROM products JOIN product_category ON product_category.id = products.category_id LEFT JOIN product_allergy ON product_allergy.product_id=products.id LEFT JOIN allergies ON allergies.id=product_allergy.allergy_id WHERE products.id NOT IN (SELECT product_orders.product_id FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id WHERE orders.status = 0 AND orders.customer_id = ?) ) ORDER BY category_id, id', nestTables: true }, [request.params.user, request.params.user], function(err, results, fields) {
+    connection.query({sql: '(SELECT product_orders.product_id AS id, product_orders.quantity, products.name, products.price, products.size, products.alcohol, products.image as products_image, products.category_id as category_id, product_category.name as category_name, allergies.description, allergies.image FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id JOIN product_category ON product_category.id = products.category_id LEFT JOIN product_allergy ON product_allergy.product_id=products.id LEFT JOIN allergies ON allergies.id=product_allergy.allergy_id WHERE orders.status = 0 AND orders.customer_id = ? ORDER BY products.category_id ) UNION (SELECT products.id, 0 AS quantity, products.name, products.price, products.size, products.alcohol, products.image as products_image, products.category_id, product_category.name as category_name, allergies.description, allergies.image FROM products JOIN product_category ON product_category.id = products.category_id LEFT JOIN product_allergy ON product_allergy.product_id=products.id LEFT JOIN allergies ON allergies.id=product_allergy.allergy_id WHERE products.id NOT IN (SELECT product_orders.product_id FROM orders JOIN product_orders ON (product_orders.order_id = orders.id) JOIN products ON products.id = product_orders.product_id WHERE orders.status = 0 AND orders.customer_id = ?) ) ORDER BY category_id, id', nestTables: true }, [request.params.user, request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
@@ -136,6 +136,7 @@ app.get('/products/:user', function(request, response) {
             row.name = row[''].name;
             row.price = row[''].price;
             row.size = row[''].size;
+            row.product_image = row[''].products_image;
             row.alcohol = row[''].alcohol;
             row.category_id = row[''].category_id;
             row.category_name = row[''].category_name;
@@ -177,7 +178,7 @@ app.get('/products', function(request, response) {
 
             row.id = row['products'].id;
             row.name = row['products'].name;
-            row.image = row['products'].image;
+            row.product_image = row['products'].image;
             row.price = row['products'].price;
             row.size = row['products'].size;
             row.alcohol = row['products'].alcohol;
@@ -220,7 +221,7 @@ app.get('/products/order/:id', function(request, response) {
 
             row.id = row['product_orders'].id;
             row.name = row['products'].name;
-            row.image = row['products'].image;
+            row.product_image = row['products'].image;
             row.price = row['products'].price;
             row.size = row['products'].size;
             row.alcohol = row['products'].alcohol;
@@ -368,12 +369,12 @@ app.post('/topup', function (req, res) {
 app.put('/customer/device', function (req, res) {
     connection.query('UPDATE `device_information` SET `hardware`=?, `type`=?, `model`=?, `brand`=?, `device`=?, `manufacturer`=?, `user`=?, `serial`=?, `host`=?, `device_id`=?, `bootloader`=?, `board` =?, `display`=? WHERE `customer_id`=?', [req.body.hardware, req.body.type, req.body.model, req.body.brand, req.body.device, req.body.manufacturer, req.body.user, req.body.serial, req.body.host, req.body.device_id, req.body.bootloader, req.body.board, req.body.display, req.body.customer_id]
         , function (error, results, fields) {
-        if (error){
-            throw error;
-        } else {
-            res.end(JSON.stringify(results));
-        }
-    });
+            if (error){
+                throw error;
+            } else {
+                res.end(JSON.stringify(results));
+            }
+        });
 });
 
 app.get('/customer/:user/device/', function(request, response) {

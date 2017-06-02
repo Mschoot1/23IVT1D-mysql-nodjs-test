@@ -177,7 +177,7 @@ app.get('/products', function(request, response) {
 
             row.id = row['products'].id;
             row.name = row['products'].name;
-            row.image = ['products'].image;
+            row.image = row['products'].image;
             row.price = row['products'].price;
             row.size = row['products'].size;
             row.alcohol = row['products'].alcohol;

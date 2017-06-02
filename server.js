@@ -150,6 +150,15 @@ app.get('/products/:user', function(request, response) {
     });
 });
 
+app.post('/order/pay', function (req, res) {
+    connection.query('INSERT INTO balance_history SET `credit`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` - ? WHERE `id`=?;INSERT INTO orders SET `status`=0, `price_total`=0, `customer_id`=?;INSERT INTO `register_history` SET `order_id`=?, `customer_id`=?, `register_id`=?', [req.body.credit, req.body.customer_id, req.body.credit, req.body.customer_id, req.body.customer_id, req.body.order_id, req.body.customer_id, req.body.register_id], function (error, results, fields) {
+        if (error){
+                throw error;
+        } else {
+            res.end(JSON.stringify(results));
+        }
+    });
+});
 
 app.get('/products', function(request, response) {
     function mergeByProductId(arr) {

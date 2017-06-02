@@ -220,6 +220,7 @@ app.get('/products/order/:id', function(request, response) {
 
             row.id = row['product_orders'].id;
             row.name = row['products'].name;
+            row.image = row['products'].image;
             row.price = row['products'].price;
             row.size = row['products'].size;
             row.alcohol = row['products'].alcohol;

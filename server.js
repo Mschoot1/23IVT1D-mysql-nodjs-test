@@ -78,7 +78,7 @@ app.get('/product/allergies', function(request, response) {
 });
 
 app.get('/orders/:user', function(request, response) {
-    connection.query('SELECT * FROM orders WHERE customer_id=? AND status = 1 ORDER BY timestamp DESC', [request.params.user], function(err, results, fields) {
+    connection.query('SELECT * FROM orders WHERE customer_id=? AND `status` =1 ORDER BY timestamp DESC', [request.params.user], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
@@ -289,6 +289,16 @@ app.put('/order/edit', function(request, response) {
     });
 });
 
+app.put('/order/pending', function(request, response) {
+    connection.query('UPDATE `orders` SET `pending`=? WHERE `id`=?', [request.body.pending, request.body.order_id], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
 app.post('/product/quantity/add', function (request, res) {
     var postData  = { order_id: request.body.order_id, product_id: request.body.product_id, customer_id: request.body.customer_id, quantity: request.body.quantity};
     connection.query('INSERT INTO product_orders SET ?', postData, function (error, results, fields) {
@@ -345,16 +355,6 @@ app.post('/register', function (req, res) {
 
 app.post('/topup', function (req, res) {
     connection.query('INSERT INTO balance_history SET `credit`=?, `type`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` + ? WHERE `id`=?', [req.body.credit, req.body.type, req.body.customer_id, req.body.credit, req.body.customer_id], function (error, results, fields) {
-        if (error){
-            throw error;
-        } else {
-            res.end(JSON.stringify(results));
-        }
-    });
-});
-
-app.post('/order/pay', function (req, res) {
-    connection.query('INSERT INTO balance_history SET `credit`=?,`customer_id`=?;UPDATE `customers` SET `balance`= `balance` - ? WHERE `id`=?;INSERT INTO orders SET `status`=0, `price_total`=0, `customer_id`=?;INSERT INTO `register_history` SET `order_id`=?, `customer_id`=?, `register_id`=?', [req.body.credit, req.body.customer_id, req.body.credit, req.body.customer_id, req.body.customer_id, req.body.order_id, req.body.customer_id, req.body.register_id], function (error, results, fields) {
         if (error){
             throw error;
         } else {

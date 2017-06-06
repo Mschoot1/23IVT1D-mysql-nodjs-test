@@ -45,6 +45,8 @@ app.use(bodyParser.urlencoded({
     extended: true
 }));
 
+app.use(express.static('public'));
+
 app.use(expressJWT({ secret: 'zeersecret'}).unless({ path: ['/loginAuth', '/loginRegister', /^\/order.*/, /^\/register.*/, /^\/product.*/, /^\/account.*/, /^\/customer.*/]}));
 
 app.get('/secret', function(request, response) {

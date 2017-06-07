@@ -296,8 +296,8 @@ app.delete('/product/quantity/delete', function(request, response) {
 
 app.put('/product/edit', function(request, response) {
     var allergies = request.body.allergies.split(',');
-    var allergy_values = allergies.map(function(allergy){return "('"+ request.body.product_id +"', '" + allergy +"')"}).join(',');
-    connection.query('DELETE FROM `product_allergy` WHERE `product_id`=?;UPDATE `products` SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=?, `image`=? WHERE `id`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergy_values, [request.body.product_id, request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_id, request.body.image, request.body.product_id], function(err, results, fields) {
+    var allergy_values = allergies.map(function(allergy){return "('"+ request.body.product_id +"', (SELECT id FROM allergies WHERE description = '"+ allergy +"'))"}).join(',');
+    connection.query('DELETE FROM `product_allergy` WHERE `product_id`=?;UPDATE `products` SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=(SELECT id FROM product_category WHERE product_category.name = ?), `image`=? WHERE `id`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergy_values, [request.body.product_id, request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_name, request.body.image, request.body.product_id], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;
@@ -319,7 +319,7 @@ app.delete('/product/delete', function(request, response) {
 app.post('/product/add', function (request, res) {
     var allergies = request.body.allergies.split(',');
     var product_name = request.body.name;
-    connection.query('INSERT INTO products SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=?, `image`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergies.map(function(allergy){return "((SELECT id FROM products WHERE name = '"+ product_name +"'), '" + allergy +"')"}).join(','), [request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_id, request.body.image], function (error, results, fields) {
+    connection.query('INSERT INTO products SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=(SELECT id FROM product_category WHERE product_category.name = ?), `image`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergies.map(function(allergy){return "((SELECT id FROM products WHERE name = '"+ product_name +"'), (SELECT id FROM allergies WHERE description = '"+ allergy +"'))"}).join(','), [request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_name, request.body.image], function (error, results, fields) {
         if (error) throw error;
         res.end(JSON.stringify(results));
     });

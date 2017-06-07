@@ -316,6 +316,15 @@ app.delete('/product/delete', function(request, response) {
     });
 });
 
+app.post('/product/add', function (request, res) {
+    var allergies = request.body.allergies.split(',');
+    var product_name = request.body.name;
+    connection.query('INSERT INTO products SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=?, `image`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergies.map(function(allergy){return "((SELECT id FROM products WHERE name = '"+ product_name +"'), '" + allergy +"')"}).join(','), [request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_id, request.body.image], function (error, results, fields) {
+        if (error) throw error;
+        res.end(JSON.stringify(results));
+    });
+});
+
 app.put('/order/edit', function(request, response) {
     connection.query('UPDATE `orders` SET `status`=1 WHERE `id`=?;INSERT INTO orders SET `status`=0, `price_total`=0, `customer_id`=?;', [request.body.id, request.body.customer_id], function(err, results, fields) {
         if (err) {

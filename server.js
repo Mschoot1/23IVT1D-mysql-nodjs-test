@@ -326,7 +326,7 @@ app.post('/product/add', function (request, res) {
 });
 
 app.put('/order/edit', function(request, response) {
-    connection.query('UPDATE `orders` SET `status`=1 WHERE `id`=?;INSERT INTO orders SET `status`=0, `price_total`=0, `customer_id`=?;', [request.body.id, request.body.customer_id], function(err, results, fields) {
+    connection.query('UPDATE `orders` SET `status`=1 WHERE `id`=?;INSERT INTO `orders` (status, price_total, customer_id) SELECT 0, 0, ? FROM `orders` WHERE NOT EXISTS (SELECT * FROM `orders` WHERE status=0 AND price_total=0 AND customer_id = ?) LIMIT 1;', [request.body.id, request.body.customer_id, request.body.customer_id], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

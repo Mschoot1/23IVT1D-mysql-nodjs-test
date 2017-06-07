@@ -273,6 +273,7 @@ app.put('/order/price/edit', function(request, response) {
         response.end(JSON.stringify({"results": results}));
     });
 });
+
 app.put('/product/quantity/edit', function(request, response) {
     connection.query('UPDATE `product_orders` SET `quantity`=? WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.quantity, request.body.product_id, request.body.customer_id, request.body.order_id], function(err, results, fields) {
         if (err) {
@@ -285,6 +286,28 @@ app.put('/product/quantity/edit', function(request, response) {
 
 app.delete('/product/quantity/delete', function(request, response) {
     connection.query('DELETE FROM `product_orders` WHERE `product_id`=? AND customer_id=? AND order_id = ?', [request.body.product_id, request.body.customer_id, request.body.order_id], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.put('/product/edit', function(request, response) {
+    var allergies = request.body.allergies.split(',');
+    var allergy_values = allergies.map(function(allergy){return "('"+ request.body.product_id +"', '" + allergy +"')"}).join(',');
+    connection.query('DELETE FROM `product_allergy` WHERE `product_id`=?;UPDATE `products` SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=?, `image`=? WHERE `id`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergy_values, [request.body.product_id, request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_id, request.body.image, request.body.product_id], function(err, results, fields) {
+        if (err) {
+            console.log('error: ', err);
+            throw err;
+        }
+        response.end(JSON.stringify({"results": results}));
+    });
+});
+
+app.delete('/product/delete', function(request, response) {
+    connection.query('DELETE FROM `product_allergy` WHERE `product_id`=?;DELETE FROM `products` WHERE `id`=?', [request.body.product_id, request.body.product_id], function(err, results, fields) {
         if (err) {
             console.log('error: ', err);
             throw err;

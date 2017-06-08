@@ -42,7 +42,8 @@ handleDisconnect();
 
 app.use( bodyParser.json() );
 app.use(bodyParser.urlencoded({
-    extended: true
+    extended: true,
+    limit: '50mb'
 }));
 
 app.use(express.static('public'));

@@ -327,10 +327,10 @@ app.post('/product/add', function (request, res) {
     var base64Data = request.body.image;
     var binaryData = new Buffer(base64Data, 'base64').toString('binary');
 
-    fs.writeFile("./public/images/out.png", binaryData, "binary", function (err) {
+    fs.writeFile("./public/images/"+ Date.now() +".png", binaryData, "binary", function (err) {
         if (err) throw err;
 
-        connection.query('INSERT INTO products SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=(SELECT id FROM product_category WHERE product_category.name = ?), `image`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergies.map(function(allergy){return "((SELECT id FROM products WHERE name = '"+ product_name +"'), (SELECT id FROM allergies WHERE description = '"+ allergy +"'))"}).join(','), [request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_name, "http://mysql-test-p4.herokuapp.com/images/out.png"], function (error, results, fields) {
+        connection.query('INSERT INTO products SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=(SELECT id FROM product_category WHERE product_category.name = ?), `image`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergies.map(function(allergy){return "((SELECT id FROM products WHERE name = '"+ product_name +"'), (SELECT id FROM allergies WHERE description = '"+ allergy +"'))"}).join(','), [request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_name, "http://mysql-test-p4.herokuapp.com/images/"+ Date.now() +".png"], function (error, results, fields) {
             if (error) throw error;
             res.end(JSON.stringify(results));
         });
@@ -518,20 +518,6 @@ app.post('/loginRegister', function (req, res) {
     });
 });
 
-app.put('/customers', function (req, res) {
-    connection.query('UPDATE `customers` SET `email`=?,`password`=? where `id`=?', [req.body.email,req.body.password, req.body.id], function (error, results, fields) {
-        if (error) throw error;
-        res.end(JSON.stringify(results));
-    });
-});
-
-app.delete('/customers', function (req, res) {
-    console.log(req.body);
-    connection.query('DELETE FROM `customers` WHERE `id`=?', [req.body.id], function (error, results, fields) {
-        if (error) throw error;
-        res.end('Deleted');
-    });
-});
 var port = process.env.PORT || 9998;
 app.listen(port, function() {
     console.log("Listening on " + port);

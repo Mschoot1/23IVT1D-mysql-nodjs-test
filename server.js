@@ -301,13 +301,31 @@ app.delete('/product/quantity/delete', function(request, response) {
 app.put('/product/edit', function(request, response) {
     var allergies = request.body.allergies.split(',');
     var allergy_values = allergies.map(function(allergy){return "('"+ request.body.product_id +"', (SELECT id FROM allergies WHERE description = '"+ allergy +"'))"}).join(',');
-    connection.query('DELETE FROM `product_allergy` WHERE `product_id`=?;UPDATE `products` SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=(SELECT id FROM product_category WHERE product_category.name = ?), `image`=? WHERE `id`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergy_values, [request.body.product_id, request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_name, request.body.image, request.body.product_id], function(err, results, fields) {
-        if (err) {
-            console.log('error: ', err);
-            throw err;
-        }
-        response.end(JSON.stringify({"results": results}));
-    });
+    if(request.body.image.startsWith("http://")){
+        connection.query('DELETE FROM `product_allergy` WHERE `product_id`=?;UPDATE `products` SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=(SELECT id FROM product_category WHERE product_category.name = ?), `image`=? WHERE `id`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergy_values, [request.body.product_id, request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_name, request.body.image, request.body.product_id], function(err, results, fields) {
+            if (err) {
+                console.log('error: ', err);
+                throw err;
+            }
+            response.end(JSON.stringify({"results": results}));
+        });
+    } else {
+        var base64Data = request.body.image;
+        var binaryData = new Buffer(base64Data, 'base64').toString('binary');
+
+        var fileName = Date.now();
+
+        fs.writeFile("./public/images/"+ fileName +".jpg", binaryData, "binary", function (err) {
+            if (err) throw err;
+            connection.query('DELETE FROM `product_allergy` WHERE `product_id`=?;UPDATE `products` SET `name`=?, `price`=?, `size`=?, `alcohol`=?, `category_id`=(SELECT id FROM product_category WHERE product_category.name = ?), `image`=? WHERE `id`=?;INSERT INTO product_allergy (product_id, allergy_id) VALUES ' + allergy_values, [request.body.product_id, request.body.name, request.body.price, request.body.size, request.body.alcohol, request.body.category_name, "http://mysql-test-p4.herokuapp.com/images/"+ fileName +".jpg", request.body.product_id], function(err, results, fields) {
+                if (err) {
+                    console.log('error: ', err);
+                    throw err;
+                }
+                response.end(JSON.stringify({"results": results}));
+            });
+        });
+    }
 });
 
 app.delete('/product/delete', function(request, response) {
@@ -323,10 +341,10 @@ app.delete('/product/delete', function(request, response) {
 app.post('/product/add', function (request, res) {
     var allergies = request.body.allergies.split(',');
     var product_name = request.body.name;
-    
+
     var base64Data = request.body.image;
     var binaryData = new Buffer(base64Data, 'base64').toString('binary');
-    
+
     var fileName = Date.now();
 
     fs.writeFile("./public/images/"+ fileName +".jpg", binaryData, "binary", function (err) {

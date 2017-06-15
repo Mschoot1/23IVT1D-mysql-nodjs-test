@@ -3,10 +3,25 @@
   "version": "0.0.1",
   "dependencies": {
     "bcrypt": "^1.0.2",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.17.1",
     "express": "4.14.x",
     "express-jwt": "^5.3.0",
+    "gulp": "^3.9.1",
+    "gulp-istanbul": "^1.1.2",
+    "gulp-mocha": "^4.3.1",
     "lodash": "^4.17.4",
-    "mysql": ""
+    "moment": "^2.18.1",
+    "morgan": "^1.8.2",
+    "mysql": "",
+    "nodemon": "^1.11.0",
+    "run-sequence": "^1.2.2",
+    "sonar-scanner": "^1.0.1",
+    "sonarqube-scanner": "^1.2.0"
+  },
+  "scripts": {
+    "test": "node node_modules/mocha/bin/_mocha ./test/*test.js --reporter spec",
+    "sonar": "gulp sonarqube",
+    "start": "nodemon server.js"
   }
 }

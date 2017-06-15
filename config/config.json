@@ -1,0 +1,8 @@
+{
+  "webPort": "9998",
+  "dbHost": "eu-cdbr-west-01.cleardb.com",
+  "dbUser": "b7097498a52cf9",
+  "dbDatabase": "heroku_c8fc5906c0a0752",
+  "dbPass": "418717e7",
+  "secretkey": "zeersecret"
+}

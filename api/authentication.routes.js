@@ -1,7 +1,7 @@
 var express = require('express');
 var routes = express.Router();
 var db = require('../config/db');
-var bcrypt = require('bcrypt');
+var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 var salt = bcrypt.genSaltSync(10);
 

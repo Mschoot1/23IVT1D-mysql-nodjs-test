@@ -23,5 +23,24 @@
     "test": "node node_modules/mocha/bin/_mocha ./test/*test.js --reporter spec",
     "sonar": "gulp sonarqube",
     "start": "nodemon server.js"
-  }
+  },
+  "description": "description",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mschoot1/23IVT1D-mysql-nodjs-test.git"
+  },
+  "keywords": [
+    "none"
+  ],
+  "author": "Marnix & Walid",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mschoot1/23IVT1D-mysql-nodjs-test/issues"
+  },
+  "homepage": "https://github.com/Mschoot1/23IVT1D-mysql-nodjs-test#readme"
 }

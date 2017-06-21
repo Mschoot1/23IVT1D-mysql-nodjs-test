@@ -15,6 +15,7 @@ describe('rental routes api v1', function () {
             email: process.env.APP_EMAIL,
             password: process.env.APP_PASSWORD
         };
+
         chai.request(server)
             .post('/loginAuth')
             .send(user)
